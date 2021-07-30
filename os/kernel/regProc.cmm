@@ -39,6 +39,7 @@
 #include <mp3Proc.hmm>
 #include <spi.hmm>
 #include <clockProc.hmm>
+#include <playlist.hmm>
 #endif
 
 // ----------------------------------------------------------------------------
@@ -104,6 +105,9 @@ public void regProc()  {
 
   // SPIドライバの初期化（プロセス起動前にすべきことをやる）
   spiInit();
+  
+  // playlistの初期化（ALLプレイリストの作成）
+  playlist_Init();
 
 #endif
 }
