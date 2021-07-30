@@ -1,0 +1,43 @@
+/*
+ * clockProc.cmm : 時計
+ *
+ * 2021.07.30 : 新規作成
+ *
+ * $Id$
+ *
+ */
+#include <kernel.hmm>
+#include <fs.hmm>
+#include <util.hmm>
+#include "clockProc.hmm"
+
+int now = 0;                                // 現在時刻 (10ミリ秒単位：655秒まで)
+int sem = 0;                                // 同期用のロック
+
+// 時計をリセット
+public void ResetTime() {
+  semP(sem);
+  now = 0;
+  semV(sem);
+}
+
+// 10 ミリ秒単位の時刻を取得
+public int GetNowTime() {
+  semP(sem);
+  int time = now;
+  semV(sem);
+  return time;
+}
+
+//-----------------------------------------------------------------------------
+// 時計用のプロセス
+//-----------------------------------------------------------------------------
+public void clockMain() {
+  sem = newSem();
+  for (;;) {
+    sleep(10);
+    semP(sem);
+    now = now + 1;
+    semV(sem);
+  }
+}

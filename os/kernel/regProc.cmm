@@ -38,6 +38,7 @@
 #include <shellProc.hmm>
 #include <mp3Proc.hmm>
 #include <spi.hmm>
+#include <clockProc.hmm>
 #endif
 
 // ----------------------------------------------------------------------------
@@ -58,8 +59,10 @@ int[] pmFds = array(P_FILE_MAX);                    // FDS領域(FSのユーザ�
 // 組み込みカーネルの場合
 MakePCB(shellMem);                                  // APPのPCBとスタック領域
 MakePCB(mp3Mem);                                    // APPのPCBとスタック領域
+MakePCB(clockMem);                                  // APPのPCBとスタック領域
 int[] shellFds = array(P_FILE_MAX);                 // FDS領域(FSのユーザだけ）
 int[] mp3Fds = array(P_FILE_MAX);                   // FDS領域(FSのユーザだけ）
+int[] clockFds = array(P_FILE_MAX);                 // FDS領域(FSのユーザだけ?)
 #endif
 
 // ----------------------------------------------------------------------------
@@ -94,6 +97,10 @@ public void regProc()  {
   // MP3 データ転送プロセス
   newProc(addrof(mp3Main),3,0,EI|KERN,_AtoA(mp3Mem),mp3Fds);
   schProc(_AtoA(mp3Mem));
+
+  // 時計プロセス
+  newProc(addrof(clockMain),4,0,EI|KERN,_AtoA(clockMem),clockFds);
+  schProc(_AtoA(clockMem));
 
   // SPIドライバの初期化（プロセス起動前にすべきことをやる）
   spiInit();

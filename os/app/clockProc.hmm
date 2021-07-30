@@ -1,0 +1,14 @@
+/*
+ * clockProc.hmm : 時計
+ *
+ * 2021.07.30 : 新規作成
+ *
+ */
+
+// 最後にリセットしてからの経過時刻を 10 ミリ秒単位で取得する
+public int GetNowTime();
+
+// 時計をリセットする
+public void ResetTime();
+
+public void clockMain();
