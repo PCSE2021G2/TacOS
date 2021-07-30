@@ -84,7 +84,7 @@ void demoScreen() {
   cls();                                            // LCDをクリアする
   locateXY(0,0); putStr("home");                     
   locateXY(3,1); putStr(">");
-  putStr("playlist")                          　　　 //仮のプレイリスト名
+  putStr("playlist");
   //char[] lname = mp3FilesGetName(i);              // 対応するプレイリスト名
   //if (lname!=null) putStr(lname);
 }
