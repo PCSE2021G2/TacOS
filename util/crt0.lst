@@ -1,0 +1,209 @@
+*** 定数 ***
+
+*** BSSセグメント ***
+0002          	__memSiz ws     1           ; 主記憶の最終アドレスを格納する
+
+*** ヘッダ ***
+magic = 0107
+text  = 010a
+data  = 0000
+bss   = 0002
+syms  = 0070
+entry = 0000
+trsize= 0028
+drsize= 0000
+
+*** TEXTセグメント ***
+0000          	.start                      ; IPL からここにジャンプしてくる
+0000 0ad0 e000	        ld      sp,#0xe000  ; TaC7a の古いファームならメモリの最後は 0xdfff
+0004 0d1f     	        ld      g1,#-1      ;
+0006 161d     	        st      g1,0,sp     ; TaC7a の古いファームなら 0xe000 から 0xeffff は
+0008 0e0d     	        ld      g0,0,sp     ;  上位バイトが未実装なのでデータが化けるはず
+000a 2c01     	        cmp     g0,g1       ;
+000c a080 0022	        jnz     .l          ; データが一致しなければ TaC7a の古いファーム
+0010 0ad0 f000	        ld      sp,#0xf000  ; 次に TaC7b-d の古いファームと仮定し 0xefff
+0014 161d     	        st      g1,0,sp     ; TaC7b-d の古いファームなら 0xf000 はROM
+0016 0e0d     	        ld      g0,0,sp     ;   化けるようなら古いファーム
+0018 2c01     	        cmp     g0,g1       ;
+001a a080 0022	        jnz     .l          ; データが一致しなければ TeC7b-d の古いファーム
+001e 0ad0 ffe0	        ld      sp,#0xffe0  ; 一致すれば TaC7a-d の新しいファームなので 0xffe0
+0022 10d0 0000	.l      st      sp,__memSiz ; TacOSに主記憶のサイズを知らせる
+0026 a800 0000	        call    _main       ; カーネルのメインに飛ぶ
+002a ff00     	.m      halt                ; 万一カーネルが終了したらここで終わる
+002c a0f0 002a	        jmp     .m          ;
+0030          	_setPri
+0030 090d 0002	        ld      g0,2,sp     ; 引数の値を G0 に取り出す
+0034 c000     	        push    g0          ; 新しい状態をスタックに積む
+0036 1400     	        ld      g0,flag     ; 古いフラグの値を返す準備をする
+0038 d400     	        reti                ; reti は FLAG と PC を同時に pop する
+003a          	_in                         ; int in(int p);
+003a 091d 0002	        ld      g1,2,sp     ; ポートアドレス
+003e b601     	        in      g0,g1       ; I/O ポートから入力する
+0040 d000     	        ret
+0042          	_out                        ; void out(int p,int v);
+0042 090d 0002	        ld      g0,2,sp     ; ポートアドレス
+0046 091d 0004	        ld      g1,4,sp     ; 出力データ
+004a be10     	        out     g1,g0       ; I/O ポートへ出力する
+004c d000     	        ret
+004e          	_halt
+004e ff00     	        halt
+0050 a0f0 004e	        jmp     _halt
+0054          	_pause
+0054 ff00     	        halt
+0056 d000     	        ret
+0058          	__fp
+0058 0b00     	        ld      g0,0,fp
+005a d000     	        ret
+005c          	__AtoI                      ; int _AtoI(void[] a);
+005c          	__AtoA                      ; void[] _AtoA(void[] a);
+005c          	__ItoA
+005c 090d 0002	        ld      g0,2,sp     ; void[] _ItoA(int a);
+0060 d000     	        ret
+0062          	__ItoP                      ; void[] _AtoP(int a, PCB p);
+0062          	__AtoP                      ; void[] _AtoP(void[] a, PCB p);
+0062 090d 0004	        ld      g0,4,sp     ;   g0 = p
+0066 0900 0010	        ld      g0,16,g0    ;   g0 = p.memBase
+006a 190d 0002	        add     g0,2,sp     ;   g0 += a
+006e d000     	        ret
+0070          	__addrAdd                   ; void[] _addrAdd(void[] a, int i);
+0070 090d 0002	        ld      g0,2,sp
+0074 190d 0004	        add     g0,4,sp
+0078 d000     	        ret
+007a          	__uCmp                      ; int _uCmp(int a, int b);
+007a          	__aCmp                      ; int _aCmp(void[] a, void b);
+007a 090d 0002	        ld      g0,2,sp
+007e 290d 0004	        cmp     g0,4,sp
+0082 0d01     	        ld      g0,#1
+0084 a0c0 0090	        jhi     .L1
+0088 0d00     	        ld      g0,#0
+008a a000 0090	        jz      .L1
+008e 0d0f     	        ld      g0,#-1
+0090 d000     	.L1     ret
+0092          	__args                      ; void[] _args();
+0092 0c0c     	        ld      g0,fp
+0094 1d06     	        add     g0,#6
+0096 d000     	        ret
+0098          	__add32                     ; int[] _add32(int[] dst, int[] src);
+0098 090d 0002	        ld      g0,2,sp     ; ディスティネーション(アドレス)
+009c 091d 0004	        ld      g1,4,sp     ; ソース(アドレス)
+00a0 0920 0002	        ld      g2,2,g0     ; ディスティネーション下位ワード
+00a4 1921 0002	        add     g2,2,g1     ; ソース下位ワード
+00a8 1120 0002	        st      g2,2,g0     ; ディスティネーション下位ワード
+00ac 0e20     	        ld      g2,0,g0     ; ディスティネーション上位ワード
+00ae a090 00b4	        jnc     .L2
+00b2 1d21     	        add     g2,#1       ; キャリーがあった場合は +1 する
+00b4          	.L2
+00b4 1e21     	        add     g2,0,g1     ; ソース上位ワード
+00b6 1620     	        st      g2,0,g0     ; ディスティネーション上位ワード
+00b8 d000     	        ret
+00ba          	__sub32                     ; int[] _sub32(int[] dst, int[] src);
+00ba 090d 0002	        ld      g0,2,sp     ; ディスティネーション(アドレス)
+00be 091d 0004	        ld      g1,4,sp     ; ソース(アドレス)
+00c2 0920 0002	        ld      g2,2,g0     ; ディスティネーション下位ワード
+00c6 2121 0002	        sub     g2,2,g1     ; ソース下位ワード
+00ca 1120 0002	        st      g2,2,g0     ; ディスティネーション下位ワード
+00ce 0e20     	        ld      g2,0,g0     ; ディスティネーション上位ワード
+00d0 a090 00d6	        jnc     .L3
+00d4 2521     	        sub     g2,#1       ; ボローがあった場合は -1 する
+00d6          	.L3
+00d6 2621     	        sub     g2,0,g1     ; ソース上位ワード
+00d8 1620     	        st      g2,0,g0     ; ディスティネーション上位ワード
+00da d000     	        ret
+00dc          	__mul32                     ; int[] _mul32(int[] dst, int src)
+00dc 092d 0002	        ld      g2,2,sp     ; ディスティネーション(アドレス)
+00e0 0902 0002	        ld      g0,2,g2     ; ディスティネーション下位ワード
+00e4 690d 0004	        mull    g0,4,sp     ; ソース
+00e8 1612     	        st      g1,0,g2     ; ディスティネーション上位ワード
+00ea 1102 0002	        st      g0,2,g2     ; ディスティネーション下位ワード
+00ee 0c02     	        ld      g0,g2       ; ディスティネーションを返す
+00f0 d000     	        ret
+00f2          	__div32                     ; int[] _div32(int[] dst, int src)
+00f2 092d 0002	        ld      g2,2,sp     ; ディスティネーション(アドレス)
+00f6 0902 0002	        ld      g0,2,g2     ; ディスティネーション下位ワード
+00fa 0e12     	        ld      g1,0,g2     ; ディスティネーション上位ワード
+00fc 710d 0004	        divl    g0,4,sp     ; ソース
+0100 1112 0002	        st      g1,2,g2     ; ディスティネーション下位ワード(余)
+0104 1602     	        st      g0,0,g2     ; ディスティネーション上位ワード(商)
+0106 0c02     	        ld      g0,g2       ; ディスティネーションを返す
+0108 d000     	        ret
+
+*** DATAセグメント ***
+
+*** 再配置表 ***
+TR領域
+Addr	Name	Type	No.
+000e	.l	TEXT	  3
+001c	.l	TEXT	  3
+0024	__memSiz	BSS	  1
+0028	_main	UNDF	  4
+002e	.m	TEXT	  5
+0052	_halt	TEXT	  9
+0086	.L1	TEXT	 20
+008c	.L1	TEXT	 20
+00b0	.L2	TEXT	 23
+00d2	.L3	TEXT	 25
+
+DR領域
+Addr	Name	Type	No.
+
+*** 名前表 ***
+No.	Name	Type	Value	Offset
+0	@crt0.s	TEXT	0000	0000
+1	__memSiz	BSS	0002	0008
+2	.start	TEXT	0000	0011
+3	.l	TEXT	0022	0018
+4	_main	UNDF	0000	001b
+5	.m	TEXT	002a	0021
+6	_setPri	TEXT	0030	0024
+7	_in	TEXT	003a	002c
+8	_out	TEXT	0042	0030
+9	_halt	TEXT	004e	0035
+10	_pause	TEXT	0054	003b
+11	__fp	TEXT	0058	0042
+12	__AtoI	TEXT	005c	0047
+13	__AtoA	TEXT	005c	004e
+14	__ItoA	TEXT	005c	0055
+15	__ItoP	TEXT	0062	005c
+16	__AtoP	TEXT	0062	0063
+17	__addrAdd	TEXT	0070	006a
+18	__uCmp	TEXT	007a	0074
+19	__aCmp	TEXT	007a	007b
+20	.L1	TEXT	0090	0082
+21	__args	TEXT	0092	0086
+22	__add32	TEXT	0098	008d
+23	.L2	TEXT	00b4	0095
+24	__sub32	TEXT	00ba	0099
+25	.L3	TEXT	00d6	00a1
+26	__mul32	TEXT	00dc	00a5
+27	__div32	TEXT	00f2	00ad
+
+*** 文字列表 ***
+Offset	String
+0000	@crt0.s
+0008	__memSiz
+0011	.start
+0018	.l
+001b	_main
+0021	.m
+0024	_setPri
+002c	_in
+0030	_out
+0035	_halt
+003b	_pause
+0042	__fp
+0047	__AtoI
+004e	__AtoA
+0055	__ItoA
+005c	__ItoP
+0063	__AtoP
+006a	__addrAdd
+0074	__uCmp
+007b	__aCmp
+0082	.L1
+0086	__args
+008d	__add32
+0095	.L2
+0099	__sub32
+00a1	.L3
+00a5	__mul32
+00ad	__div32
