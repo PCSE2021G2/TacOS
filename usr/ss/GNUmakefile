@@ -2,7 +2,7 @@
 # TacOS Source Code
 #    Tokuyama kousen Educational Computer 16 bit Version
 #
-# Copyright (C) 2011 - 2020 by
+# Copyright (C) 2016 - 2019 by
 #                      Dept. of Computer Science and Electronic Engineering,
 #                      Tokuyama College of Technology, JAPAN
 #
@@ -17,25 +17,30 @@
 # る損害に関しても，その責任を負わない．
 #
 #
-# Makefile : TacOS
+# GNUmakefile : ユーザプログラム用の Makefile
 #
-# 2020.09.06         : kernel0.bin も uSD に保存する
-# 2019.04.14         : コンパイル済みの kernel.bin と *.exe を uSD に保存する
-# 2016.01.07         : 初期バージョン
+# 2019.10.18         : PC側のプログラムを作るように変更
+# 2018.11.24         : clean で *.dSYM を消すように変更
+# 2016.08.11         : 初期バージョン
 #
 # $Id$
 #
-MAKEFLAGS=--no-print-directory
 
-# サブディレクトリ
-SUBDIRS:=os usr
+#----------------------------------------------------------------------------
+NAME=ss
+SRCS=${NAME}.cmm
+#----------------------------------------------------------------------------
 
-all :
-	$(foreach dir, $(SUBDIRS), $(MAKE) --directory=$(dir); )
-	mv os/kernel.bin uSD
-	mv os/kernel0.bin uSD
-	mv usr/*/*.exe uSD/bin
+all : clean ${NAME}.bin
+
+${NAME}.bin : ${SRCS}
+	cm2c -o ${NAME}.bin ${SRCS}
+
+install : ${NAME}
+	install -d -m 755 /usr/local/bin
+	install -m 755 ${NAME}.sh  /usr/local/bin/${NAME}
+	install -m 755 ${NAME}.bin /usr/local/bin/${NAME}.bin
 
 clean :
-	$(foreach dir, $(SUBDIRS), $(MAKE) --directory=$(dir) clean; )
-	rm -f *~
+	rm -f ${NAME} ${NAME}.bin *.o *.lst *.sym *.exe *.map *~
+	rm -rf ${NAME}.bin.dSYM

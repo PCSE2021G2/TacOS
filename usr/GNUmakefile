@@ -2,7 +2,7 @@
 # TacOS Source Code
 #    Tokuyama kousen Educational Computer 16 bit Version
 #
-# Copyright (C) 2011 - 2020 by
+# Copyright (C) 2016 - 2020 by
 #                      Dept. of Computer Science and Electronic Engineering,
 #                      Tokuyama College of Technology, JAPAN
 #
@@ -17,10 +17,15 @@
 # る損害に関しても，その責任を負わない．
 #
 #
-# Makefile : TacOS
+# Makefile : usr ディレクトリ用の Makefile
 #
-# 2020.09.06         : kernel0.bin も uSD に保存する
-# 2019.04.14         : コンパイル済みの kernel.bin と *.exe を uSD に保存する
+# 2021.03.17         : tail を追加
+# 2021.01.13         : screen を追加
+# 2020.06.29         : tasm7 を追加
+# 2019.11.14         : envtest env pwd printenv を追加
+# 2019.03.13         : in out を追加
+# 2018.11.24         : ar cp fsize mv を追加
+# 2018.01.26         : lib ディレクトリを削除（C-- 標準ライブラリを用いる）
 # 2016.01.07         : 初期バージョン
 #
 # $Id$
@@ -28,14 +33,17 @@
 MAKEFLAGS=--no-print-directory
 
 # サブディレクトリ
-SUBDIRS:=os usr
+SUBDIRS:=ar cat cp dump echo edit fsize hello in ls mkdir mv out rm rmdir \
+	shell touch ss sr spitest head env pwd printenv tasm7 sedit screen \
+        tail
+# port
 
 all :
 	$(foreach dir, $(SUBDIRS), $(MAKE) --directory=$(dir); )
-	mv os/kernel.bin uSD
-	mv os/kernel0.bin uSD
-	mv usr/*/*.exe uSD/bin
 
 clean :
 	$(foreach dir, $(SUBDIRS), $(MAKE) --directory=$(dir) clean; )
 	rm -f *~
+
+install :
+	$(foreach dir, $(SUBDIRS), $(MAKE) --directory=$(dir) install; )
