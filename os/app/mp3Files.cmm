@@ -42,6 +42,9 @@ int numFile;                                        // ファイルの個数
 char[] mp3Dir = "/MP3";
 char[] path = array(18);                            // /MP3/12345678.123
 char[] none = array(13);
+int[] tmp1=array(2);
+int[] test1=array(2);
+int[] test2=array(2);
 
 char[] fnameToPath(char[] fname) {
   strCpy(path, mp3Dir);
@@ -97,7 +100,37 @@ public void playlist_add(int m, char[] name){
 }
 
 // 配列の長さを返す
-// public int mp3FilesGetLength(){
-//   int size = sizeof(fnames)/sizeof(char);
-//   return size;
-// }
+public int mp3FilesGetLength(int m, int n){
+       int bitrate;
+       int spframe;
+       int figframe;
+       int len_sec;
+       if(1<=n && n<=numFile){
+       	       char[] path = mp3FilesGetPath(m,n);
+	       Stat stat2;
+	       if(stat(path,stat2)<0){
+		return -1;
+	       }
+	       //tmp1[0]=15;
+	       //tmp1[1]=16960;
+	       //bitrate1000x100=_mul32(tmp1,getBitrate(path));
+	       //printF(“%d,%d\n”,bitrate1000x100[0],bitrate1000x100[1]);
+	       //bitrate=getBitrate(path);
+	       //printF(“bitrate=%d\n”,bitrate);
+	       spframe=418;
+               figframe=stat2.lenH*(65535/spframe);
+	       //printF(“lenH:%d\n”,stat2.lenH);
+	       //printF(“figrame:%d\n”,figframe);
+	       tmp1[1]=figframe;
+	       test1=_mul32(tmp1,1152);
+	       //printF(“framex1152=%d,%d\n”,test1[0],test1[1]);
+	      
+	       test2=_div32(test1,44100);
+	       printF("sec=%d,%d\n",test2[0]);
+	      
+	       return test2[0];
+	}
+	return -1;
+}
+
+

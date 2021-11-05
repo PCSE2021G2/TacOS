@@ -187,7 +187,6 @@ public void spiFlushMp3() {
   out(0x18, 0xfc);                     // xDCS='1', clk='0'
   semV(spiSem);
 }
-		   
 
 int[] vol_value = { 0x4040, 0x3C3C, 0x3838, 0x3434,
               0x3030, 0x2C2C, 0x2828, 0x2424,
